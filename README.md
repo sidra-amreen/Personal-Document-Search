@@ -11,11 +11,11 @@ Search your own .txt / .md / .pdf / .docx files by meaning, not just exact words
 ## Run
 ```bash
 pip install -r requirements.txt
-python cli.py index sample_docs          # build index.joblib
+python cli.py index sample_docs          
 python cli.py search "bake with a starter" -k 3
-python cli.py chat                       # interactive
-streamlit run app.py                     # web UI
-python evaluate.py                       # keyword vs semantic vs hybrid (R@1, R@3, MRR)
+python cli.py chat                      
+streamlit run app.py                    
+python evaluate.py                       
 ```
 
 ## Notes / next steps
