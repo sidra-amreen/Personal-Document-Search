@@ -1,4 +1,3 @@
-"""CLI:  python cli.py index ./docs   |   python cli.py search "query" -k 5   |   python cli.py chat"""
 import argparse
 from pathlib import Path
 
