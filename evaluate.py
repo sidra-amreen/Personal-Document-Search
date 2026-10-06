@@ -1,4 +1,3 @@
-"""Compare keyword-only, semantic-only and hybrid ranking on labelled queries."""
 import json
 from pathlib import Path
 
