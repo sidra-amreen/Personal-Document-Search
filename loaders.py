@@ -1,4 +1,3 @@
-"""Read text from .txt / .md / .pdf / .docx files (no heavy dependencies)."""
 import re
 import zipfile
 from pathlib import Path
@@ -19,7 +18,7 @@ def read_file(path: Path) -> str:
                 xml = z.read("word/document.xml").decode("utf-8", errors="ignore")
             xml = re.sub(r"</w:p>", "\n", xml)
             return re.sub(r"<[^>]+>", "", xml)
-    except Exception as e:  # corrupted / encrypted files shouldn't kill indexing
+    except Exception as e: 
         print(f"[skip] {path.name}: {e}")
     return ""
 
