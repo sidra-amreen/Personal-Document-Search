@@ -1,4 +1,3 @@
-"""Hybrid search: BM25 (exact keywords) + LSA (latent semantic similarity)."""
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,9 +37,8 @@ class Hit:
 class SearchEngine:
     def __init__(self, k1=1.5, b=0.75, n_topics=100):
         self.k1, self.b, self.n_topics = k1, b, n_topics
-        self.chunks, self.meta, self.files = [], [], {}   # meta[i] = path of chunk i
-
-    # ---------- indexing ----------
+        self.chunks, self.meta, self.files = [], [], {}   
+   
     def build(self, folder: str, chunk_size=120, overlap=30):
         self.chunks, self.meta, self.files = [], [], {}
         for path, mtime in scan_folder(folder):
@@ -55,7 +53,6 @@ class SearchEngine:
                                   token_pattern=r"(?u)\b[a-zA-Z0-9][a-zA-Z0-9+#.-]*\b")
         tf = self.cv.fit_transform(self.chunks).tocsr().astype(np.float32)
 
-        # BM25 weight matrix
         N = tf.shape[0]
         df = np.bincount(tf.indices, minlength=tf.shape[1])
         self.idf = np.log(1 + (N - df + 0.5) / (df + 0.5)).astype(np.float32)
@@ -65,7 +62,6 @@ class SearchEngine:
         w = coo.data * (self.k1 + 1) / (coo.data + norm[coo.row]) * self.idf[coo.col]
         self.bm25_w = sp.csc_matrix((w, (coo.row, coo.col)), shape=tf.shape)
 
-        # LSA: TF-IDF -> truncated SVD
         self.tfidf = TfidfTransformer(sublinear_tf=True).fit(tf)
         X = self.tfidf.transform(tf)
         k = max(2, min(self.n_topics, X.shape[0] - 1, X.shape[1] - 1))
@@ -73,7 +69,6 @@ class SearchEngine:
         self.Z = normalize(self.svd.transform(X))
         return self
 
-    # ---------- querying ----------
     def scores(self, query: str):
         vocab = self.cv.vocabulary_
         idx = [vocab[t] for t in self.cv.build_analyzer()(query) if t in vocab]
@@ -90,7 +85,7 @@ class SearchEngine:
         for i in np.argsort(-fused):
             path = self.meta[i]
             if path in seen:
-                continue                    # one best chunk per document
+                continue                    
             seen.add(path)
             hits.append(Hit(path, float(fused[i]), self._snippet(self.chunks[i], query),
                             float(bm25[i]), float(sem[i])))
@@ -105,7 +100,6 @@ class SearchEngine:
         s = text[start:start + width]
         return ("…" if start else "") + s + ("…" if start + width < len(text) else "")
 
-    # ---------- persistence ----------
     def is_stale(self, folder: str) -> bool:
         return {str(p): m for p, m in scan_folder(folder)} != self.files
 
